@@ -19,10 +19,11 @@ import {
 } from "lucide-react";
 import { motion } from "framer-motion";
 import { useWeb3 } from "@/hooks/useWeb3";
+import { confirmCheckIn, getBooking, refundDeposit, chargeDeposit } from "@/lib/web3/innchain";
 import { toast } from "sonner";
 
 const HotelStaffCheckin = () => {
-  const { account, isConnected, connect } = useWeb3();
+  const { account, provider, isConnected, connect } = useWeb3();
   const [bookingId, setBookingId] = useState("");
   const [loading, setLoading] = useState(false);
   const [selectedBooking, setSelectedBooking] = useState<any>(null);
@@ -45,46 +46,41 @@ const HotelStaffCheckin = () => {
   ];
 
   const handleSearchBooking = async () => {
+    if (!provider || !isConnected) {
+      toast.error("Please connect your wallet");
+      return;
+    }
+    
     setLoading(true);
     try {
-      // Simulate API call - replace with actual contract call
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
-      const booking = mockBookings.find(b => b.id === bookingId);
-      if (booking) {
-        setSelectedBooking(booking);
-        toast.success("Booking found");
-      } else {
-        toast.error("Booking not found");
-        setSelectedBooking(null);
-      }
+      const booking = await getBooking(provider, parseInt(bookingId));
+      setSelectedBooking(booking);
+      toast.success("Booking found");
     } catch (error) {
-      toast.error("Failed to fetch booking");
+      toast.error("Booking not found");
+      setSelectedBooking(null);
+      console.error(error);
     } finally {
       setLoading(false);
     }
   };
 
   const handleConfirmCheckin = async () => {
-    if (!isConnected) {
+    if (!provider || !isConnected) {
       toast.error("Please connect your wallet");
       return;
     }
 
     setLoading(true);
     try {
-      // Replace with actual contract interaction
-      // const contract = getInnChainContract();
-      // const signer = await provider.getSigner();
-      // const tx = await contract.connect(signer).confirmCheckIn(bookingId);
-      // await tx.wait();
-      
-      await new Promise(resolve => setTimeout(resolve, 2000));
-      
+      await confirmCheckIn(provider, parseInt(bookingId));
       toast.success(`Check-in confirmed! ${selectedBooking.roomCost} USDC released to hotel.`);
-      setSelectedBooking({ ...selectedBooking, status: "checked-in" });
-    } catch (error) {
-      toast.error("Failed to confirm check-in");
+      
+      // Refetch booking to get updated status
+      const updatedBooking = await getBooking(provider, parseInt(bookingId));
+      setSelectedBooking(updatedBooking);
+    } catch (error: any) {
+      toast.error(error.message || "Failed to confirm check-in");
       console.error(error);
     } finally {
       setLoading(false);
@@ -92,21 +88,23 @@ const HotelStaffCheckin = () => {
   };
 
   const handleChargeDeposit = async (amount: number) => {
-    if (!isConnected) {
+    if (!provider || !isConnected) {
       toast.error("Please connect your wallet");
       return;
     }
 
     setLoading(true);
     try {
-      // Replace with actual contract interaction
-      await new Promise(resolve => setTimeout(resolve, 2000));
+      await chargeDeposit(provider, parseInt(bookingId), amount.toString());
       
-      const refund = selectedBooking.deposit - amount;
-      toast.success(`${amount} USDC charged from deposit. ${refund} USDC refunded to customer.`);
-      setSelectedBooking({ ...selectedBooking, status: "completed" });
-    } catch (error) {
-      toast.error("Failed to charge deposit");
+      const refund = parseFloat(selectedBooking.depositAmount) - amount;
+      toast.success(`${amount} USDC charged from deposit. ${refund.toFixed(2)} USDC refunded to customer.`);
+      
+      // Refetch booking
+      const updatedBooking = await getBooking(provider, parseInt(bookingId));
+      setSelectedBooking(updatedBooking);
+    } catch (error: any) {
+      toast.error(error.message || "Failed to charge deposit");
       console.error(error);
     } finally {
       setLoading(false);
@@ -114,20 +112,21 @@ const HotelStaffCheckin = () => {
   };
 
   const handleRefundDeposit = async () => {
-    if (!isConnected) {
+    if (!provider || !isConnected) {
       toast.error("Please connect your wallet");
       return;
     }
 
     setLoading(true);
     try {
-      // Replace with actual contract interaction
-      await new Promise(resolve => setTimeout(resolve, 2000));
+      await refundDeposit(provider, parseInt(bookingId));
+      toast.success(`${selectedBooking.depositAmount} USDC refunded to customer.`);
       
-      toast.success(`${selectedBooking.deposit} USDC refunded to customer.`);
-      setSelectedBooking({ ...selectedBooking, status: "completed" });
-    } catch (error) {
-      toast.error("Failed to refund deposit");
+      // Refetch booking
+      const updatedBooking = await getBooking(provider, parseInt(bookingId));
+      setSelectedBooking(updatedBooking);
+    } catch (error: any) {
+      toast.error(error.message || "Failed to refund deposit");
       console.error(error);
     } finally {
       setLoading(false);
@@ -215,17 +214,17 @@ const HotelStaffCheckin = () => {
                 <Card>
                   <CardHeader>
                     <div className="flex items-center justify-between">
-                      <CardTitle>Booking {selectedBooking.id}</CardTitle>
+                      <CardTitle>Booking {bookingId}</CardTitle>
                       <Badge 
                         variant={
-                          selectedBooking.status === "pending" ? "secondary" : 
-                          selectedBooking.status === "checked-in" ? "default" : 
+                          !selectedBooking.roomReleased ? "secondary" : 
+                          selectedBooking.roomReleased && !selectedBooking.depositReleased ? "default" : 
                           "outline"
                         }
                       >
-                        {selectedBooking.status === "pending" && "⏳ Pending"}
-                        {selectedBooking.status === "checked-in" && "🏨 Checked In"}
-                        {selectedBooking.status === "completed" && "✓ Completed"}
+                        {!selectedBooking.roomReleased && "⏳ Pending Check-in"}
+                        {selectedBooking.roomReleased && !selectedBooking.depositReleased && "🏨 Checked In"}
+                        {selectedBooking.depositReleased && "✓ Completed"}
                       </Badge>
                     </div>
                   </CardHeader>
@@ -252,20 +251,16 @@ const HotelStaffCheckin = () => {
                       </h3>
                       <div className="grid md:grid-cols-2 gap-4">
                         <div>
-                          <p className="text-sm text-muted-foreground">Room Type</p>
-                          <p className="font-semibold">{selectedBooking.roomType}</p>
+                          <p className="text-sm text-muted-foreground">Room Class</p>
+                          <p className="font-semibold">Class ID: {selectedBooking.classId}</p>
                         </div>
                         <div>
                           <p className="text-sm text-muted-foreground">Duration</p>
                           <p className="font-semibold">{selectedBooking.nights} nights</p>
                         </div>
                         <div>
-                          <p className="text-sm text-muted-foreground">Check-in</p>
-                          <p className="font-semibold">{selectedBooking.checkIn}</p>
-                        </div>
-                        <div>
-                          <p className="text-sm text-muted-foreground">Check-out</p>
-                          <p className="font-semibold">{selectedBooking.checkOut}</p>
+                          <p className="text-sm text-muted-foreground">Hotel ID</p>
+                          <p className="font-semibold">{selectedBooking.hotelId}</p>
                         </div>
                       </div>
                     </div>
@@ -279,28 +274,29 @@ const HotelStaffCheckin = () => {
                         Payment Breakdown
                       </h3>
                       <div className="space-y-2">
-                        <div className="flex justify-between">
-                          <span className="text-muted-foreground">Room Cost</span>
-                          <span className="font-semibold">{selectedBooking.roomCost} USDC</span>
-                        </div>
-                        <div className="flex justify-between">
-                          <span className="text-muted-foreground">Deposit (Escrow)</span>
-                          <span className="font-semibold">{selectedBooking.deposit} USDC</span>
-                        </div>
-                        <Separator />
-                        <div className="flex justify-between text-lg">
-                          <span className="font-bold">Total in Escrow</span>
-                          <span className="font-bold text-primary">{selectedBooking.total} USDC</span>
-                        </div>
+                          <div className="flex justify-between">
+                            <span className="text-muted-foreground">Room Cost</span>
+                            <span className="font-semibold">{selectedBooking.roomCost} USDC</span>
+                          </div>
+                          <div className="flex justify-between">
+                            <span className="text-muted-foreground">Deposit (Escrow)</span>
+                            <span className="font-semibold">{selectedBooking.depositAmount} USDC</span>
+                          </div>
+                          <Separator />
+                          <div className="flex justify-between text-lg">
+                            <span className="font-bold">Total in Escrow</span>
+                            <span className="font-bold text-primary">
+                              {(parseFloat(selectedBooking.roomCost) + parseFloat(selectedBooking.depositAmount)).toFixed(2)} USDC
+                            </span>
+                          </div>
                       </div>
                     </div>
 
                     <Separator />
 
                     {/* Actions */}
-                    <div>
                       <h3 className="font-semibold mb-3">Actions</h3>
-                      {selectedBooking.status === "pending" && (
+                      {!selectedBooking.roomReleased && (
                         <Button 
                           onClick={handleConfirmCheckin}
                           disabled={loading || !isConnected}
@@ -312,7 +308,7 @@ const HotelStaffCheckin = () => {
                         </Button>
                       )}
 
-                      {selectedBooking.status === "checked-in" && (
+                      {selectedBooking.roomReleased && !selectedBooking.depositReleased && (
                         <div className="space-y-3">
                           <Alert>
                             <Clock className="h-4 w-4" />
@@ -345,7 +341,7 @@ const HotelStaffCheckin = () => {
                         </div>
                       )}
 
-                      {selectedBooking.status === "completed" && (
+                      {selectedBooking.depositReleased && (
                         <Alert>
                           <CheckCircle2 className="h-4 w-4" />
                           <AlertDescription>
@@ -353,7 +349,6 @@ const HotelStaffCheckin = () => {
                           </AlertDescription>
                         </Alert>
                       )}
-                    </div>
                   </CardContent>
                 </Card>
               </motion.div>
