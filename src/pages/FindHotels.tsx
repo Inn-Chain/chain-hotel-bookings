@@ -187,8 +187,28 @@ const FindHotels = () => {
                   animate={{ opacity: 1, y: 0 }}
                   className="bg-card-dark rounded-2xl p-12 text-center"
                 >
-                  <p className="text-red-400 mb-4">Error: {error}</p>
-                  <p className="text-white/70">Please make sure you're connected to Lisk Sepolia testnet</p>
+                  <h3 className="text-2xl font-bold text-red-400 mb-4">Connection Error</h3>
+                  <p className="text-white mb-4">{error}</p>
+                  <div className="bg-white/5 rounded-xl p-6 mb-6 text-left max-w-lg mx-auto">
+                    <p className="text-sm text-white/70 mb-3">Make sure you're connected to:</p>
+                    <ul className="space-y-2 text-white/90">
+                      <li className="flex items-center gap-2">
+                        <span className="w-2 h-2 bg-accent rounded-full"></span>
+                        <span className="font-medium">Network:</span> Lisk Sepolia Testnet
+                      </li>
+                      <li className="flex items-center gap-2">
+                        <span className="w-2 h-2 bg-accent rounded-full"></span>
+                        <span className="font-medium">Chain ID:</span> 4202
+                      </li>
+                      <li className="flex items-center gap-2">
+                        <span className="w-2 h-2 bg-accent rounded-full"></span>
+                        <span className="font-medium">RPC:</span> https://rpc.sepolia-api.lisk.com
+                      </li>
+                    </ul>
+                  </div>
+                  <Button onClick={connect} variant="hero" size="lg">
+                    Reconnect Wallet
+                  </Button>
                 </motion.div>
               ) : hotels.length === 0 ? (
                 <motion.div

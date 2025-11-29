@@ -10,7 +10,7 @@ export const useHotels = () => {
 
   useEffect(() => {
     const fetchHotels = async () => {
-      if (!provider) {
+      if (!provider || !isConnected) {
         setLoading(false);
         return;
       }
@@ -18,10 +18,12 @@ export const useHotels = () => {
       try {
         setLoading(true);
         setError(null);
+        console.log("Starting hotel fetch with provider:", provider);
         const hotelsData = await getAllHotels(provider);
+        console.log("Hotels fetched successfully:", hotelsData);
         setHotels(hotelsData);
-      } catch (err) {
-        console.error("Error fetching hotels:", err);
+      } catch (err: any) {
+        console.error("Error in useHotels:", err);
         setError(err instanceof Error ? err.message : "Failed to fetch hotels");
       } finally {
         setLoading(false);
@@ -29,7 +31,7 @@ export const useHotels = () => {
     };
 
     fetchHotels();
-  }, [provider]);
+  }, [provider, isConnected]);
 
   return { hotels, loading, error, refetch: () => provider && getAllHotels(provider).then(setHotels) };
 };
