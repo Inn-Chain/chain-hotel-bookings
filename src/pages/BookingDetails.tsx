@@ -10,6 +10,7 @@ import { useBooking } from "@/hooks/useBooking";
 import { useHotel } from "@/hooks/useHotel";
 import { useWeb3 } from "@/hooks/useWeb3";
 import { LISK_SEPOLIA } from "@/lib/web3/config";
+import hotelImage from "@/assets/hotel-1.jpg";
 
 const BookingDetails = () => {
   const [searchParams] = useSearchParams();
@@ -115,7 +116,7 @@ const BookingDetails = () => {
               <Card className="overflow-hidden">
                 <div className="aspect-[16/9] bg-muted relative">
                   <img 
-                    src="/placeholder.svg" 
+                    src={hotelImage}
                     alt={hotel?.name || "Hotel"}
                     className="w-full h-full object-cover"
                   />

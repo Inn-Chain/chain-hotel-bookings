@@ -48,12 +48,13 @@ const HotelDetail = () => {
       const depositAmount = parseFloat(deposit);
       const total = roomCost + depositAmount;
 
-      toast.loading("Approving USDC...");
+      const approveToast = toast.loading("Approving USDC...");
       
       // Approve USDC
       await approveUSDC(provider, total.toString());
       
-      toast.loading("Creating booking...");
+      toast.dismiss(approveToast);
+      const bookingToast = toast.loading("Creating booking...");
       
       // Create booking
       const bookingId = await createBooking(
@@ -64,12 +65,14 @@ const HotelDetail = () => {
         deposit
       );
       
+      toast.dismiss(bookingToast);
       toast.success(`Booking created! ID: ${bookingId}`);
       
       // Navigate to booking details
       navigate(`/booking-details?id=${bookingId}`);
     } catch (err: any) {
       console.error("Booking error:", err);
+      toast.dismiss();
       toast.error(err.message || "Failed to create booking");
     } finally {
       setIsBooking(false);
