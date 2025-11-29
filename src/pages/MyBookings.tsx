@@ -15,31 +15,31 @@ const MyBookings = () => {
   const getStatusColor = (status: string) => {
     switch (status.toLowerCase()) {
       case "pending":
-        return "bg-yellow-500/10 text-yellow-500 border-yellow-500/20";
+        return "bg-accent/20 text-accent border-accent/30";
       case "checked-in":
-        return "bg-blue-500/10 text-blue-500 border-blue-500/20";
+        return "bg-primary/20 text-primary border-primary/30";
       case "completed":
-        return "bg-green-500/10 text-green-500 border-green-500/20";
+        return "bg-green-500/20 text-green-400 border-green-500/30";
       case "cancelled":
-        return "bg-red-500/10 text-red-500 border-red-500/20";
+        return "bg-destructive/20 text-destructive border-destructive/30";
       default:
-        return "bg-muted text-muted-foreground";
+        return "bg-muted/20 text-muted-foreground border-muted/30";
     }
   };
 
   return (
-    <div className="min-h-screen bg-secondary">
+    <div className="min-h-screen bg-background">
       <Navigation />
       
       <div className="container mx-auto px-6 pt-24 pb-12">
         <div className="max-w-6xl mx-auto">
           <div className="mb-8">
-            <h1 className="text-4xl font-bold text-white mb-2">My Bookings</h1>
-            <p className="text-white/70">View and manage all your hotel reservations</p>
+            <h1 className="text-4xl font-bold text-foreground mb-2">My Bookings</h1>
+            <p className="text-muted-foreground">View and manage all your hotel reservations</p>
           </div>
 
           {!isConnected ? (
-            <Card className="bg-background/50 backdrop-blur border-border">
+            <Card className="bg-card border-border">
               <CardContent className="pt-6">
                 <div className="text-center py-12">
                   <p className="text-muted-foreground mb-4">Please connect your wallet to view your bookings</p>
@@ -49,7 +49,7 @@ const MyBookings = () => {
           ) : loading ? (
             <div className="space-y-4">
               {[1, 2, 3].map((i) => (
-                <Card key={i} className="bg-background/50 backdrop-blur border-border">
+                <Card key={i} className="bg-card border-border">
                   <CardHeader>
                     <Skeleton className="h-6 w-48" />
                     <Skeleton className="h-4 w-32 mt-2" />
@@ -61,15 +61,15 @@ const MyBookings = () => {
               ))}
             </div>
           ) : error ? (
-            <Card className="bg-background/50 backdrop-blur border-border">
+            <Card className="bg-card border-border">
               <CardContent className="pt-6">
                 <div className="text-center py-12">
-                  <p className="text-red-500 mb-4">{error}</p>
+                  <p className="text-destructive mb-4">{error}</p>
                 </div>
               </CardContent>
             </Card>
           ) : bookings.length === 0 ? (
-            <Card className="bg-background/50 backdrop-blur border-border">
+            <Card className="bg-card border-border">
               <CardContent className="pt-6">
                 <div className="text-center py-12">
                   <Hotel className="w-16 h-16 text-muted-foreground mx-auto mb-4" />
@@ -83,11 +83,11 @@ const MyBookings = () => {
           ) : (
             <div className="space-y-4">
               {bookings.map((booking) => (
-                <Card key={booking.bookingId} className="bg-background/50 backdrop-blur border-border hover:border-primary/20 transition-colors">
+                <Card key={booking.bookingId} className="bg-card border-border hover:border-primary/30 transition-colors">
                   <CardHeader>
                     <div className="flex items-start justify-between">
                       <div>
-                        <CardTitle className="text-2xl mb-1">{booking.hotelName}</CardTitle>
+                        <CardTitle className="text-2xl mb-1 text-foreground">{booking.hotelName}</CardTitle>
                         <CardDescription className="text-base">
                           Booking #{booking.bookingId} • {booking.className}
                         </CardDescription>
