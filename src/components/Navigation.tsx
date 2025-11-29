@@ -1,6 +1,12 @@
 import { Link, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Wallet } from "lucide-react";
+import { Wallet, LogOut, RefreshCw } from "lucide-react";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { useWeb3 } from "@/hooks/useWeb3";
 import innchainLogo from "@/assets/innchain-logo.png";
 
@@ -37,14 +43,27 @@ export const Navigation = () => {
 
           <div className="flex items-center gap-4">
             {isConnected ? (
-              <Button 
-                variant={isDarkPage ? "wallet" : "hero"} 
-                size="lg"
-                onClick={disconnect}
-              >
-                <Wallet className="w-4 h-4" />
-                {account?.slice(0, 6)}...{account?.slice(-4)}
-              </Button>
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button 
+                    variant={isDarkPage ? "wallet" : "hero"} 
+                    size="lg"
+                  >
+                    <Wallet className="w-4 h-4" />
+                    {account?.slice(0, 6)}...{account?.slice(-4)}
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="w-48">
+                  <DropdownMenuItem onClick={connect}>
+                    <RefreshCw className="w-4 h-4 mr-2" />
+                    Switch Wallet
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={disconnect}>
+                    <LogOut className="w-4 h-4 mr-2" />
+                    Disconnect
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
             ) : (
               <Button 
                 variant={isDarkPage ? "wallet" : "hero"} 

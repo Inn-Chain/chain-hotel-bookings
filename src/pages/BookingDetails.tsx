@@ -1,21 +1,36 @@
+import { useState } from "react";
 import { useSearchParams, useNavigate } from "react-router-dom";
 import { Navigation } from "@/components/Navigation";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { CheckCircle2, Clock, MapPin, Calendar, Users, Wallet, Loader2 } from "lucide-react";
 import { motion } from "framer-motion";
 import { useBooking } from "@/hooks/useBooking";
 import { useHotel } from "@/hooks/useHotel";
 import { useWeb3 } from "@/hooks/useWeb3";
+import { fullRefund } from "@/lib/web3/innchain";
 import { LISK_SEPOLIA } from "@/lib/web3/config";
+import { toast } from "sonner";
 import hotelImage from "@/assets/hotel-1.jpg";
 
 const BookingDetails = () => {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
-  const { account, isConnected } = useWeb3();
+  const { account, provider, isConnected } = useWeb3();
+  const [showCancelDialog, setShowCancelDialog] = useState(false);
+  const [cancelLoading, setCancelLoading] = useState(false);
   
   const bookingId = searchParams.get("id");
   const { booking, loading: bookingLoading, error: bookingError } = useBooking(
@@ -81,6 +96,28 @@ const BookingDetails = () => {
   };
 
   const status = getStatus();
+
+  const handleCancelBooking = async () => {
+    if (!provider || !bookingId) return;
+    
+    setCancelLoading(true);
+    try {
+      await fullRefund(provider, parseInt(bookingId));
+      toast.success("Booking cancelled successfully. Full refund processed.");
+      setShowCancelDialog(false);
+      // Refresh booking data
+      window.location.reload();
+    } catch (error: any) {
+      console.error(error);
+      if (error.message?.includes("Check-in already confirmed")) {
+        toast.error("Cannot cancel: Check-in has already been confirmed.", { duration: 5000 });
+      } else {
+        toast.error(error.message || "Failed to cancel booking");
+      }
+    } finally {
+      setCancelLoading(false);
+    }
+  };
 
   return (
     <div className="min-h-screen bg-background">
@@ -238,8 +275,13 @@ const BookingDetails = () => {
 
               {/* Actions */}
               <div className="space-y-3">
-                {status === "confirmed" && (
-                  <Button variant="outline" className="w-full" size="lg">
+                {status === "confirmed" && !booking.roomReleased && (
+                  <Button 
+                    variant="outline" 
+                    className="w-full" 
+                    size="lg"
+                    onClick={() => setShowCancelDialog(true)}
+                  >
                     Request Cancellation
                   </Button>
                 )}
@@ -255,6 +297,29 @@ const BookingDetails = () => {
           </div>
         </motion.div>
       </main>
+
+      {/* Cancellation Dialog */}
+      <AlertDialog open={showCancelDialog} onOpenChange={setShowCancelDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Cancel Booking?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This will initiate a full refund of {(parseFloat(booking?.roomCost || "0") + parseFloat(booking?.depositAmount || "0")).toFixed(2)} USDC 
+              (room cost + deposit) back to your wallet. This action cannot be undone after check-in is confirmed.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={cancelLoading}>Cancel</AlertDialogCancel>
+            <AlertDialogAction 
+              onClick={handleCancelBooking}
+              disabled={cancelLoading}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              {cancelLoading ? "Processing..." : "Confirm Cancellation"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 };

@@ -19,8 +19,8 @@ const FindHotels = () => {
       <Navigation />
       
       {/* Search Section */}
-      <section className="pt-32 pb-16">
-        <div className="container mx-auto px-6">
+      <section className="pt-24 pb-12">
+        <div className="container mx-auto px-4 max-w-7xl">
           <div className="flex items-center justify-between mb-8">
             <div className="flex-1 max-w-2xl">
               <div className="relative">
@@ -83,23 +83,23 @@ const FindHotels = () => {
       </section>
 
       {/* Hotel List Section */}
-      <section className="pb-20">
-        <div className="container mx-auto px-6">
-          <div className="mb-8">
+      <section className="pb-16">
+        <div className="container mx-auto px-4 max-w-7xl">
+          <div className="mb-6">
             <h2 className="text-3xl font-bold text-white mb-2">Hotel List</h2>
             <p className="text-white/70">Look at this list hotel</p>
           </div>
 
-          <div className="grid lg:grid-cols-[320px,1fr] gap-8">
+          <div className="grid lg:grid-cols-[300px,1fr] gap-6">
             {/* Filters Sidebar */}
             <motion.div
               initial={{ opacity: 0, x: -30 }}
               animate={{ opacity: 1, x: 0 }}
-              className="bg-card-dark rounded-2xl p-6 h-fit"
+              className="bg-card-dark rounded-2xl p-5 h-fit"
             >
-              <h3 className="text-xl font-bold text-white mb-6">Filters</h3>
+              <h3 className="text-xl font-bold text-white mb-5">Filters</h3>
 
-              <div className="space-y-6">
+              <div className="space-y-5">
                 {/* Price Range */}
                 <div>
                   <label className="text-white font-medium mb-3 block">Price Range</label>
@@ -159,7 +159,7 @@ const FindHotels = () => {
             </motion.div>
 
             {/* Hotel Cards */}
-            <div className="space-y-6">
+            <div className="space-y-5">
               {!isConnected ? (
                 <motion.div
                   initial={{ opacity: 0, y: 20 }}
@@ -210,14 +210,14 @@ const FindHotels = () => {
                       initial={{ opacity: 0, y: 20 }}
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ delay: index * 0.1 }}
-                      className="bg-card-dark rounded-2xl p-6 flex gap-6 hover:shadow-xl transition-shadow"
+                      className="bg-card-dark rounded-2xl p-5 flex gap-5 hover:shadow-xl transition-shadow"
                     >
                       <img
                         src={hotelImage}
                         alt={hotel.name}
-                        className="w-56 h-40 object-cover rounded-xl flex-shrink-0"
+                        className="w-52 h-36 object-cover rounded-xl flex-shrink-0"
                       />
-                      <div className="flex-1 flex items-center justify-between gap-6">
+                      <div className="flex-1 flex items-center justify-between gap-5">
                         <div className="flex-1">
                           <h3 className="text-2xl font-bold text-white mb-2">{hotel.name}</h3>
                           <div className="flex items-center gap-2 mb-2">

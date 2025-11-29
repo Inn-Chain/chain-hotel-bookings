@@ -27,6 +27,7 @@ const HotelStaffCheckin = () => {
   const [bookingId, setBookingId] = useState("");
   const [loading, setLoading] = useState(false);
   const [selectedBooking, setSelectedBooking] = useState<any>(null);
+  const [chargeAmount, setChargeAmount] = useState("");
 
   const handleSearchBooking = async () => {
     if (!provider || !isConnected) {
@@ -78,9 +79,20 @@ const HotelStaffCheckin = () => {
     }
   };
 
-  const handleChargeDeposit = async (amount: number) => {
+  const handleChargeDeposit = async () => {
     if (!provider || !isConnected) {
       toast.error("Please connect your wallet");
+      return;
+    }
+
+    const amount = parseFloat(chargeAmount);
+    if (isNaN(amount) || amount <= 0) {
+      toast.error("Please enter a valid amount");
+      return;
+    }
+
+    if (amount > parseFloat(selectedBooking.depositAmount)) {
+      toast.error(`Amount cannot exceed deposit of ${selectedBooking.depositAmount} USDC`);
       return;
     }
 
@@ -94,6 +106,7 @@ const HotelStaffCheckin = () => {
       // Refetch booking
       const updatedBooking = await getBooking(provider, parseInt(bookingId));
       setSelectedBooking(updatedBooking);
+      setChargeAmount("");
     } catch (error: any) {
       console.error(error);
       
@@ -314,7 +327,7 @@ const HotelStaffCheckin = () => {
                       )}
 
                       {selectedBooking.roomReleased && !selectedBooking.depositReleased && (
-                        <div className="space-y-3">
+                        <div className="space-y-4">
                           <Alert>
                             <Clock className="h-4 w-4" />
                             <AlertDescription>
@@ -322,26 +335,49 @@ const HotelStaffCheckin = () => {
                             </AlertDescription>
                           </Alert>
                           
-                          <div className="grid md:grid-cols-2 gap-3">
-                            <Button
-                              onClick={handleRefundDeposit}
-                              disabled={loading || !isConnected}
-                              size="lg"
-                              variant="outline"
-                            >
-                              <CheckCircle2 className="w-5 h-5 mr-2" />
-                              Refund Full Deposit
-                            </Button>
-                            
-                            <Button
-                              onClick={() => handleChargeDeposit(50)}
-                              disabled={loading || !isConnected}
-                              size="lg"
-                              variant="destructive"
-                            >
-                              <XCircle className="w-5 h-5 mr-2" />
+                          <Button
+                            onClick={handleRefundDeposit}
+                            disabled={loading || !isConnected}
+                            size="lg"
+                            variant="outline"
+                            className="w-full"
+                          >
+                            <CheckCircle2 className="w-5 h-5 mr-2" />
+                            Refund Full Deposit ({selectedBooking.depositAmount} USDC)
+                          </Button>
+
+                          <div className="space-y-2">
+                            <Label htmlFor="chargeAmount" className="text-base font-semibold">
                               Charge for Damages
-                            </Button>
+                            </Label>
+                            <p className="text-sm text-muted-foreground">
+                              Enter the amount to charge. Remaining deposit will be refunded automatically.
+                            </p>
+                            <div className="flex gap-2">
+                              <div className="flex-1">
+                                <Input
+                                  id="chargeAmount"
+                                  type="number"
+                                  placeholder="0.00"
+                                  value={chargeAmount}
+                                  onChange={(e) => setChargeAmount(e.target.value)}
+                                  max={selectedBooking.depositAmount}
+                                  step="0.01"
+                                />
+                                <p className="text-xs text-muted-foreground mt-1">
+                                  Max: {selectedBooking.depositAmount} USDC
+                                </p>
+                              </div>
+                              <Button
+                                onClick={handleChargeDeposit}
+                                disabled={loading || !isConnected || !chargeAmount}
+                                size="lg"
+                                variant="destructive"
+                              >
+                                <XCircle className="w-5 h-5 mr-2" />
+                                Charge
+                              </Button>
+                            </div>
                           </div>
                         </div>
                       )}
