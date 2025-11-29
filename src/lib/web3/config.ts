@@ -15,7 +15,7 @@ export const PANNA_CONFIG = {
 
 // Contract addresses - Update these with deployed contract addresses
 export const CONTRACTS = {
-  INNCHAIN: import.meta.env.VITE_INNCHAIN_CONTRACT || "0x3dC787e67179E3d085eE4D363337116C5d7bb4D9",
+  INNCHAIN: import.meta.env.VITE_INNCHAIN_CONTRACT || "0xb253EE84b6f937f0B4Ebfbef5F32E0606815c17f",
   USDC: import.meta.env.VITE_USDC_TOKEN || "0x...", // Update with USDC address on Lisk Sepolia
 };
 
@@ -25,26 +25,26 @@ export const INNCHAIN_ABI = [
   "function registerHotel(string memory name, address payable wallet) external returns (uint256)",
   "function linkHotelToClass(uint256 hotelId, uint256 classId) external",
   "function addGlobalRoomClass(string memory name, uint256 pricePerNight) external returns (uint256)",
-  
+
   // Booking Functions
   "function createBooking(uint256 hotelId, uint256 classId, uint256 nights, uint256 depositAmount) external returns (uint256)",
   "function confirmCheckIn(uint256 bookingId) external",
   "function refundDeposit(uint256 bookingId) external",
   "function chargeDeposit(uint256 bookingId, uint256 amount) external",
   "function fullRefund(uint256 bookingId) external",
-  
+
   // View Functions
   "function getHotel(uint256 hotelId) external view returns (bool registered, string name, address wallet, uint256 classCount)",
   "function getAllHotels() external view returns (uint256[] hotelIds, string[] hotelNames, address[] hotelWallets, uint256[][] hotelClassIds, string[][] hotelClassNames, uint256[][] hotelClassPrices)",
   "function getAllRoomClasses() external view returns (uint256[] ids, string[] names, uint256[] prices)",
   "function getHotelClasses(uint256 hotelId) external view returns (uint256[])",
   "function getBooking(uint256 bookingId) external view returns (address customer, uint256 hotelId, uint256 classId, uint256 nights, uint256 roomCost, uint256 depositAmount, bool paidRoom, bool roomReleased, bool depositReleased)",
-  
+
   // Counters
   "function hotelCount() external view returns (uint256)",
   "function bookingCount() external view returns (uint256)",
   "function roomClassCount() external view returns (uint256)",
-  
+
   // Events
   "event HotelRegistered(uint256 indexed hotelId, string name, address wallet)",
   "event HotelClassLinked(uint256 indexed hotelId, uint256 indexed classId)",
