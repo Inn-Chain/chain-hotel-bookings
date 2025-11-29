@@ -230,7 +230,14 @@ export async function getBooking(
 export async function getAllHotels(provider: BrowserProvider): Promise<Hotel[]> {
   try {
     const contract = new Contract(CONTRACTS.INNCHAIN, INNCHAIN_ABI, provider);
+    console.log("Fetching hotels from contract:", CONTRACTS.INNCHAIN);
+    
+    // Check network
+    const network = await provider.getNetwork();
+    console.log("Connected to network:", network.chainId, network.name);
+    
     const hotelsData = await contract.getAllHotelsWithDetails();
+    console.log("Hotels data received:", hotelsData);
 
     return hotelsData.map((hotel: any) => {
       const roomClasses: RoomClass[] = hotel.classes.map((cls: any) => ({
@@ -249,8 +256,13 @@ export async function getAllHotels(provider: BrowserProvider): Promise<Hotel[]> 
           : "0"
       };
     });
-  } catch (error) {
-    console.error("Error fetching hotels:", error);
+  } catch (error: any) {
+    console.error("Detailed error fetching hotels:", {
+      message: error.message,
+      code: error.code,
+      data: error.data,
+      contractAddress: CONTRACTS.INNCHAIN
+    });
     throw new Error("Failed to fetch hotels from blockchain");
   }
 }
