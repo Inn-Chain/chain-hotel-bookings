@@ -49,11 +49,11 @@ const Index = () => {
         </div>
       </section>
 
-      {/* Why MilestonePay Section */}
+      {/* Why InnChain Section */}
       <section className="py-20 bg-primary">
         <div className="container mx-auto px-6">
           <h2 className="text-4xl font-bold text-center text-white mb-16">
-            Why MilestonePay
+            Why InnChain
           </h2>
           <div className="grid md:grid-cols-3 gap-12">
             <motion.div

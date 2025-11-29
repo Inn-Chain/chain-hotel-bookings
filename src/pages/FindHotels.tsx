@@ -19,7 +19,7 @@ const FindHotels = () => {
       <Navigation />
       
       {/* Search Section */}
-      <section className="pt-32 pb-12">
+      <section className="pt-32 pb-16">
         <div className="container mx-auto px-6">
           <div className="flex items-center justify-between mb-8">
             <div className="flex-1 max-w-2xl">
@@ -210,39 +210,39 @@ const FindHotels = () => {
                       initial={{ opacity: 0, y: 20 }}
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ delay: index * 0.1 }}
-                      className="bg-card-dark rounded-2xl p-6 flex gap-6"
+                      className="bg-card-dark rounded-2xl p-6 flex gap-6 hover:shadow-xl transition-shadow"
                     >
                       <img
                         src={hotelImage}
                         alt={hotel.name}
-                        className="w-48 h-36 object-cover rounded-xl"
+                        className="w-56 h-40 object-cover rounded-xl flex-shrink-0"
                       />
-                      <div className="flex-1 flex items-center justify-between">
-                        <div>
-                          <h3 className="text-2xl font-bold text-white mb-3">{hotel.name}</h3>
-                          <div className="flex items-center gap-2 mb-3">
+                      <div className="flex-1 flex items-center justify-between gap-6">
+                        <div className="flex-1">
+                          <h3 className="text-2xl font-bold text-white mb-2">{hotel.name}</h3>
+                          <div className="flex items-center gap-2 mb-2">
                             {[...Array(5)].map((_, i) => (
                               <Star
                                 key={i}
-                                className={`w-5 h-5 ${
+                                className={`w-4 h-4 ${
                                   i < 4
                                     ? "fill-yellow-400 text-yellow-400"
                                     : "text-white/30"
                                 }`}
                               />
                             ))}
-                            <span className="text-white ml-2">4.5</span>
+                            <span className="text-white text-sm ml-1">4.5</span>
                           </div>
-                          <p className="text-sm text-white/70 mb-2">
+                          <p className="text-sm text-white/60 mb-3">
                             {hotel.roomClasses.length} room {hotel.roomClasses.length === 1 ? 'type' : 'types'} available
                           </p>
-                          <p className="text-xl text-white">
-                            From <span className="font-bold">{minPrice.toFixed(0)} USDC</span> / night
+                          <p className="text-lg text-white">
+                            From <span className="font-bold text-xl">{minPrice.toFixed(0)} USDC</span> / night
                           </p>
                         </div>
-                        <Link to={`/hotel-detail?id=${hotel.id}`}>
-                          <Button variant="hero" size="lg">
-                            View
+                        <Link to={`/hotel-detail?id=${hotel.id}`} className="flex-shrink-0">
+                          <Button variant="hero" size="lg" className="px-8">
+                            View Details
                           </Button>
                         </Link>
                       </div>
