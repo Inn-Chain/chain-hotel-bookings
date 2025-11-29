@@ -19,26 +19,24 @@ const FindHotels = () => {
       <Navigation />
       
       {/* Search Section */}
-      <section className="pt-24 pb-12">
+      <section className="pt-24 pb-8">
         <div className="container mx-auto px-4 max-w-7xl">
-          <div className="flex items-center justify-between mb-8">
-            <div className="flex-1 max-w-2xl">
-              <div className="relative">
-                <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground" />
-                <Input
-                  placeholder="Search Hotels..."
-                  className="pl-12 h-14 bg-white/10 border-white/20 text-white placeholder:text-white/60"
-                />
-              </div>
+          <div className="flex items-center gap-4 mb-6">
+            <div className="relative flex-1">
+              <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground" />
+              <Input
+                placeholder="Search Hotels..."
+                className="pl-12 h-14 bg-white/10 border-white/20 text-white placeholder:text-white/60"
+              />
             </div>
-            <Button variant="outline" className="ml-4 bg-white/10 border-white/20 text-white hover:bg-white/20">
+            <Button variant="outline" className="bg-white/10 border-white/20 text-white hover:bg-white/20 h-14 px-8">
               Filter
             </Button>
           </div>
 
           {/* Search Filters */}
-          <div className="bg-card-dark rounded-2xl p-6 mb-8">
-            <div className="grid md:grid-cols-3 gap-6">
+          <div className="bg-card-dark rounded-2xl p-6">
+            <div className="grid md:grid-cols-3 gap-4">
               <div>
                 <label className="text-sm text-white/70 mb-2 block">City, destination, or hotel name</label>
                 <div className="relative">
@@ -85,7 +83,7 @@ const FindHotels = () => {
       {/* Hotel List Section */}
       <section className="pb-16">
         <div className="container mx-auto px-4 max-w-7xl">
-          <div className="mb-6">
+          <div className="mb-4 mt-6">
             <h2 className="text-3xl font-bold text-white mb-2">Hotel List</h2>
             <p className="text-white/70">Look at this list hotel</p>
           </div>
