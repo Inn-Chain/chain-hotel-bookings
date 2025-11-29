@@ -39,8 +39,10 @@ export interface RoomClass {
 
 export interface Hotel {
   id: number;
+  name: string;
   wallet: string;
-  isActive: boolean;
+  classCount: number;
+  classes: RoomClass[];
 }
 
 /**
@@ -101,7 +103,7 @@ export async function createBooking(
   const signer = await provider.getSigner();
   const contract = new Contract(CONTRACTS.INNCHAIN, INNCHAIN_ABI, signer);
   
-  const depositWei = parseUnits(deposit, 6); // USDC has 6 decimals
+  const depositWei = parseUnits(deposit, 18); // Contract uses 18 decimals for stable token
   const tx = await contract.createBooking(hotelId, roomClassId, nights, depositWei);
   return tx.wait();
 }
@@ -192,6 +194,41 @@ export async function getBooking(
 }
 
 /**
+ * Get all hotels with their room classes
+ */
+export async function getAllHotels(
+  provider: BrowserProvider
+): Promise<Hotel[]> {
+  const contract = new Contract(CONTRACTS.INNCHAIN, INNCHAIN_ABI, provider);
+  const result = await contract.getAllHotels();
+  
+  const hotels: Hotel[] = [];
+  
+  for (let i = 0; i < result.hotelIds.length; i++) {
+    const classes: RoomClass[] = [];
+    
+    for (let j = 0; j < result.hotelClassIds[i].length; j++) {
+      classes.push({
+        id: Number(result.hotelClassIds[i][j]),
+        name: result.hotelClassNames[i][j],
+        pricePerNight: formatUnits(result.hotelClassPrices[i][j], 18), // Note: contract uses 18 decimals
+        isActive: true,
+      });
+    }
+    
+    hotels.push({
+      id: Number(result.hotelIds[i]),
+      name: result.hotelNames[i],
+      wallet: result.hotelWallets[i],
+      classCount: Number(result.hotelClassIds[i].length),
+      classes,
+    });
+  }
+  
+  return hotels;
+}
+
+/**
  * Get hotel details by ID
  */
 export async function getHotel(
@@ -199,17 +236,28 @@ export async function getHotel(
   hotelId: number
 ): Promise<Hotel> {
   const contract = new Contract(CONTRACTS.INNCHAIN, INNCHAIN_ABI, provider);
-  const hotel = await contract.getHotel(hotelId);
+  const [registered, name, wallet, classCount] = await contract.getHotel(hotelId);
+  
+  // Get classes for this hotel
+  const classIds = await contract.getHotelClasses(hotelId);
+  const classes: RoomClass[] = [];
+  
+  for (const classId of classIds) {
+    const roomClass = await getRoomClass(provider, hotelId, Number(classId));
+    classes.push(roomClass);
+  }
   
   return {
-    id: hotel.id,
-    wallet: hotel.wallet,
-    isActive: hotel.isActive,
+    id: hotelId,
+    name,
+    wallet,
+    classCount: Number(classCount),
+    classes,
   };
 }
 
 /**
- * Get room class details
+ * Get room class details (global room classes)
  */
 export async function getRoomClass(
   provider: BrowserProvider,
@@ -217,13 +265,20 @@ export async function getRoomClass(
   classId: number
 ): Promise<RoomClass> {
   const contract = new Contract(CONTRACTS.INNCHAIN, INNCHAIN_ABI, provider);
-  const roomClass = await contract.getRoomClass(hotelId, classId);
+  const allClasses = await contract.getAllRoomClasses();
+  
+  // Find the class by ID
+  const index = allClasses.ids.findIndex((id: bigint) => Number(id) === classId);
+  
+  if (index === -1) {
+    throw new Error(`Room class ${classId} not found`);
+  }
   
   return {
-    id: roomClass.id,
-    name: roomClass.name,
-    pricePerNight: formatUnits(roomClass.pricePerNight, 6),
-    isActive: roomClass.isActive,
+    id: classId,
+    name: allClasses.names[index],
+    pricePerNight: formatUnits(allClasses.prices[index], 18), // Note: contract uses 18 decimals
+    isActive: true,
   };
 }
 

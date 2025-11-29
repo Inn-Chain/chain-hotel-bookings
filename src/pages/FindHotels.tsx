@@ -3,19 +3,16 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Slider } from "@/components/ui/slider";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Search, MapPin, Calendar, Users, Star, ChevronLeft, ChevronRight } from "lucide-react";
+import { Search, MapPin, Calendar, Users, Star, ChevronLeft, ChevronRight, Loader2 } from "lucide-react";
 import { motion } from "framer-motion";
 import { Link } from "react-router-dom";
+import { useHotels } from "@/hooks/useHotels";
+import { useWeb3 } from "@/hooks/useWeb3";
 import hotelImage from "@/assets/hotel-1.jpg";
 
 const FindHotels = () => {
-  const hotels = Array(4).fill({
-    name: "Rimuru Hotel",
-    rating: 4.7,
-    reviews: 300,
-    pricePerNight: 120,
-    image: hotelImage,
-  });
+  const { connect, isConnected } = useWeb3();
+  const { hotels, loading, error } = useHotels();
 
   return (
     <div className="min-h-screen bg-secondary">
@@ -163,49 +160,96 @@ const FindHotels = () => {
 
             {/* Hotel Cards */}
             <div className="space-y-6">
-              {hotels.map((hotel, index) => (
+              {!isConnected ? (
                 <motion.div
-                  key={index}
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: index * 0.1 }}
-                  className="bg-card-dark rounded-2xl p-6 flex gap-6"
+                  className="bg-card-dark rounded-2xl p-12 text-center"
                 >
-                  <img
-                    src={hotel.image}
-                    alt={hotel.name}
-                    className="w-48 h-36 object-cover rounded-xl"
-                  />
-                  <div className="flex-1 flex items-center justify-between">
-                    <div>
-                      <h3 className="text-2xl font-bold text-white mb-3">{hotel.name}</h3>
-                      <div className="flex items-center gap-2 mb-3">
-                        {[...Array(5)].map((_, i) => (
-                          <Star
-                            key={i}
-                            className={`w-5 h-5 ${
-                              i < 4
-                                ? "fill-yellow-400 text-yellow-400"
-                                : "text-white/30"
-                            }`}
-                          />
-                        ))}
-                        <span className="text-white ml-2">
-                          {hotel.rating} {hotel.reviews} Reviews
-                        </span>
-                      </div>
-                      <p className="text-xl text-white">
-                        From <span className="font-bold">{hotel.pricePerNight} USDC</span> / night
-                      </p>
-                    </div>
-                    <Link to="/hotel-detail">
-                      <Button variant="hero" size="lg">
-                        View
-                      </Button>
-                    </Link>
-                  </div>
+                  <h3 className="text-2xl font-bold text-white mb-4">Connect Your Wallet</h3>
+                  <p className="text-white/70 mb-6">Please connect your wallet to view available hotels</p>
+                  <Button onClick={connect} variant="hero" size="lg">
+                    Connect Wallet
+                  </Button>
                 </motion.div>
-              ))}
+              ) : loading ? (
+                <motion.div
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className="bg-card-dark rounded-2xl p-12 text-center"
+                >
+                  <Loader2 className="w-12 h-12 text-primary animate-spin mx-auto mb-4" />
+                  <p className="text-white/70">Loading hotels from blockchain...</p>
+                </motion.div>
+              ) : error ? (
+                <motion.div
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className="bg-card-dark rounded-2xl p-12 text-center"
+                >
+                  <p className="text-red-400 mb-4">Error: {error}</p>
+                  <p className="text-white/70">Please make sure you're connected to Lisk Sepolia testnet</p>
+                </motion.div>
+              ) : hotels.length === 0 ? (
+                <motion.div
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className="bg-card-dark rounded-2xl p-12 text-center"
+                >
+                  <p className="text-white/70">No hotels found</p>
+                </motion.div>
+              ) : (
+                hotels.map((hotel, index) => {
+                  const minPrice = hotel.classes.length > 0 
+                    ? Math.min(...hotel.classes.map(c => parseFloat(c.pricePerNight)))
+                    : 0;
+                  
+                  return (
+                    <motion.div
+                      key={hotel.id}
+                      initial={{ opacity: 0, y: 20 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: index * 0.1 }}
+                      className="bg-card-dark rounded-2xl p-6 flex gap-6"
+                    >
+                      <img
+                        src={hotelImage}
+                        alt={hotel.name}
+                        className="w-48 h-36 object-cover rounded-xl"
+                      />
+                      <div className="flex-1 flex items-center justify-between">
+                        <div>
+                          <h3 className="text-2xl font-bold text-white mb-3">{hotel.name}</h3>
+                          <div className="flex items-center gap-2 mb-3">
+                            {[...Array(5)].map((_, i) => (
+                              <Star
+                                key={i}
+                                className={`w-5 h-5 ${
+                                  i < 4
+                                    ? "fill-yellow-400 text-yellow-400"
+                                    : "text-white/30"
+                                }`}
+                              />
+                            ))}
+                            <span className="text-white ml-2">4.5</span>
+                          </div>
+                          <p className="text-sm text-white/70 mb-2">
+                            {hotel.classes.length} room {hotel.classes.length === 1 ? 'type' : 'types'} available
+                          </p>
+                          <p className="text-xl text-white">
+                            From <span className="font-bold">{minPrice.toFixed(0)} USDC</span> / night
+                          </p>
+                        </div>
+                        <Link to={`/hotel-detail?id=${hotel.id}`}>
+                          <Button variant="hero" size="lg">
+                            View
+                          </Button>
+                        </Link>
+                      </div>
+                    </motion.div>
+                  );
+                })
+              )}
 
               {/* Pagination */}
               <div className="flex justify-center gap-2 mt-8">

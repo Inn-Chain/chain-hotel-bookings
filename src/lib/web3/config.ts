@@ -21,22 +21,39 @@ export const CONTRACTS = {
 
 // Contract ABIs
 export const INNCHAIN_ABI = [
-  "function registerHotel(address wallet) external",
-  "function addRoomClass(uint256 hotelId, string memory name, uint256 pricePerNight) external",
-  "function createBooking(uint256 hotelId, uint256 classId, uint256 nights, uint256 deposit) external",
+  // Hotel Management
+  "function registerHotel(string memory name, address payable wallet) external returns (uint256)",
+  "function linkHotelToClass(uint256 hotelId, uint256 classId) external",
+  "function addGlobalRoomClass(string memory name, uint256 pricePerNight) external returns (uint256)",
+  
+  // Booking Functions
+  "function createBooking(uint256 hotelId, uint256 classId, uint256 nights, uint256 depositAmount) external returns (uint256)",
   "function confirmCheckIn(uint256 bookingId) external",
   "function refundDeposit(uint256 bookingId) external",
   "function chargeDeposit(uint256 bookingId, uint256 amount) external",
   "function fullRefund(uint256 bookingId) external",
-  "function getHotel(uint256 hotelId) external view returns (tuple(uint256 id, address wallet, bool isActive))",
-  "function getRoomClass(uint256 hotelId, uint256 classId) external view returns (tuple(uint256 id, string name, uint256 pricePerNight, bool isActive))",
-  "function getBooking(uint256 bookingId) external view returns (tuple(uint256 id, uint256 hotelId, uint256 roomClassId, address customer, uint256 nights, uint256 roomCost, uint256 deposit, bool checkedIn, bool settled, uint256 createdAt))",
-  "event HotelRegistered(uint256 indexed hotelId, address indexed wallet)",
-  "event RoomClassAdded(uint256 indexed hotelId, uint256 indexed classId, string name, uint256 pricePerNight)",
-  "event BookingCreated(uint256 indexed bookingId, uint256 indexed hotelId, address indexed customer, uint256 roomCost, uint256 deposit)",
-  "event CheckInConfirmed(uint256 indexed bookingId, uint256 roomCostReleased)",
-  "event DepositRefunded(uint256 indexed bookingId, uint256 amount)",
-  "event DepositCharged(uint256 indexed bookingId, uint256 charged, uint256 refunded)",
+  
+  // View Functions
+  "function getHotel(uint256 hotelId) external view returns (bool registered, string name, address wallet, uint256 classCount)",
+  "function getAllHotels() external view returns (uint256[] hotelIds, string[] hotelNames, address[] hotelWallets, uint256[][] hotelClassIds, string[][] hotelClassNames, uint256[][] hotelClassPrices)",
+  "function getAllRoomClasses() external view returns (uint256[] ids, string[] names, uint256[] prices)",
+  "function getHotelClasses(uint256 hotelId) external view returns (uint256[])",
+  "function getBooking(uint256 bookingId) external view returns (address customer, uint256 hotelId, uint256 classId, uint256 nights, uint256 roomCost, uint256 depositAmount, bool paidRoom, bool roomReleased, bool depositReleased)",
+  
+  // Counters
+  "function hotelCount() external view returns (uint256)",
+  "function bookingCount() external view returns (uint256)",
+  "function roomClassCount() external view returns (uint256)",
+  
+  // Events
+  "event HotelRegistered(uint256 indexed hotelId, string name, address wallet)",
+  "event HotelClassLinked(uint256 indexed hotelId, uint256 indexed classId)",
+  "event RoomClassCreated(uint256 indexed classId, string name, uint256 pricePerNight)",
+  "event BookingCreated(uint256 indexed bookingId, uint256 indexed hotelId, uint256 indexed classId, address customer, uint256 roomCost, uint256 depositAmount)",
+  "event RoomPaymentReleased(uint256 indexed bookingId, uint256 amountToHotel)",
+  "event DepositRefunded(uint256 indexed bookingId, uint256 amountToCustomer)",
+  "event DepositCharged(uint256 indexed bookingId, uint256 amountToHotel, uint256 amountToCustomer)",
+  "event FullRefund(uint256 indexed bookingId, uint256 totalRefund)",
 ];
 
 export const ERC20_ABI = [
