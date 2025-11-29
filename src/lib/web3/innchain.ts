@@ -43,6 +43,23 @@ export interface Hotel {
   minPricePerNight: string;
 }
 
+export interface BookingDetails {
+  bookingId: number;
+  hotelId: number;
+  hotelName: string;
+  classId: number;
+  className: string;
+  nights: number;
+  pricePerNight: string;
+  roomCost: string;
+  depositAmount: string;
+  totalAmount: string;
+  paidRoom: boolean;
+  roomReleased: boolean;
+  depositReleased: boolean;
+  status: string;
+}
+
 /**
  * Approve USDC spending for InnChain contract
  * Must be called before creating a booking
@@ -291,6 +308,35 @@ export async function getRoomClass(
     name: allClasses.names[index],
     pricePerNight: formatUnits(allClasses.prices[index], 18),
   };
+}
+
+/**
+ * Get all bookings for the connected customer
+ */
+export async function getCustomerBookings(
+  provider: BrowserProvider
+): Promise<BookingDetails[]> {
+  const signer = await provider.getSigner();
+  const contract = new Contract(CONTRACTS.INNCHAIN, INNCHAIN_ABI, signer);
+  
+  const bookingsData = await contract.getCustomerBookings();
+  
+  return bookingsData.map((booking: any) => ({
+    bookingId: Number(booking.bookingId),
+    hotelId: Number(booking.hotelId),
+    hotelName: booking.hotelName,
+    classId: Number(booking.classId),
+    className: booking.className,
+    nights: Number(booking.nights),
+    pricePerNight: formatUnits(booking.pricePerNight, 18),
+    roomCost: formatUnits(booking.roomCost, 18),
+    depositAmount: formatUnits(booking.depositAmount, 18),
+    totalAmount: formatUnits(booking.totalAmount, 18),
+    paidRoom: booking.paidRoom,
+    roomReleased: booking.roomReleased,
+    depositReleased: booking.depositReleased,
+    status: booking.status,
+  }));
 }
 
 /**

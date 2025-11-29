@@ -39,6 +39,12 @@ export const Navigation = () => {
             >
               Hotels
             </Link>
+            <Link 
+              to="/my-bookings" 
+              className={`font-medium transition-colors ${isDarkPage ? 'text-white hover:text-accent' : 'text-foreground hover:text-primary'}`}
+            >
+              My Bookings
+            </Link>
           </div>
 
           <div className="flex items-center gap-4">
