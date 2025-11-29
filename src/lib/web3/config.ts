@@ -15,12 +15,12 @@ export const PANNA_CONFIG = {
 
 // Contract addresses - Update these with deployed contract addresses
 export const CONTRACTS = {
-  INNCHAIN: import.meta.env.VITE_INNCHAIN_CONTRACT || "0x5C6587367AE3BfcF45c6e196aEC1e72783Dd995E",
+  INNCHAIN: import.meta.env.VITE_INNCHAIN_CONTRACT || "0x8a44403EBE44F34Bc6CA5C79FF136bBEbd6E9773",
   USDC: import.meta.env.VITE_USDC_TOKEN || "0xD4fa9D0A762e1c94E6FbBb8f0Eeb090597147603",
 };
 
 // Contract ABIs - Using official ABI from smart contract
-import InnChainArtifact from './InnChain.json';
+import InnChainArtifact from "./InnChain.json";
 export const INNCHAIN_ABI = InnChainArtifact.abi;
 
 export const ERC20_ABI = [
