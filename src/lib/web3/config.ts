@@ -35,7 +35,7 @@ export const INNCHAIN_ABI = [
 
   // View Functions
   "function getHotel(uint256 hotelId) external view returns (bool registered, string name, address wallet, uint256 classCount)",
-  "function getAllHotels() external view returns (uint256[] hotelIds, string[] hotelNames, address[] hotelWallets, uint256[][] hotelClassIds, string[][] hotelClassNames, uint256[][] hotelClassPrices)",
+  "function getAllHotelsWithDetails() external view returns (tuple(uint256 id, string name, address wallet, uint256 classCount, tuple(uint256 id, string name, uint256 pricePerNight)[] classes)[])",
   "function getAllRoomClasses() external view returns (uint256[] ids, string[] names, uint256[] prices)",
   "function getHotelClasses(uint256 hotelId) external view returns (uint256[])",
   "function getBooking(uint256 bookingId) external view returns (address customer, uint256 hotelId, uint256 classId, uint256 nights, uint256 roomCost, uint256 depositAmount, bool paidRoom, bool roomReleased, bool depositReleased)",

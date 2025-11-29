@@ -200,8 +200,8 @@ const FindHotels = () => {
                 </motion.div>
               ) : (
                 hotels.map((hotel, index) => {
-                  const minPrice = hotel.classes.length > 0 
-                    ? Math.min(...hotel.classes.map(c => parseFloat(c.pricePerNight)))
+                  const minPrice = hotel.roomClasses.length > 0 
+                    ? Math.min(...hotel.roomClasses.map(c => parseFloat(c.pricePerNight)))
                     : 0;
                   
                   return (
@@ -234,7 +234,7 @@ const FindHotels = () => {
                             <span className="text-white ml-2">4.5</span>
                           </div>
                           <p className="text-sm text-white/70 mb-2">
-                            {hotel.classes.length} room {hotel.classes.length === 1 ? 'type' : 'types'} available
+                            {hotel.roomClasses.length} room {hotel.roomClasses.length === 1 ? 'type' : 'types'} available
                           </p>
                           <p className="text-xl text-white">
                             From <span className="font-bold">{minPrice.toFixed(0)} USDC</span> / night

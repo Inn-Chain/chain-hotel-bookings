@@ -1,46 +1,85 @@
-import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useSearchParams, useNavigate } from "react-router-dom";
 import { Navigation } from "@/components/Navigation";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
-import { CheckCircle2, Clock, MapPin, Calendar, Users, Wallet } from "lucide-react";
+import { CheckCircle2, Clock, MapPin, Calendar, Users, Wallet, Loader2 } from "lucide-react";
 import { motion } from "framer-motion";
+import { useBooking } from "@/hooks/useBooking";
+import { useHotel } from "@/hooks/useHotel";
+import { useWeb3 } from "@/hooks/useWeb3";
+import { LISK_SEPOLIA } from "@/lib/web3/config";
 
 const BookingDetails = () => {
+  const [searchParams] = useSearchParams();
   const navigate = useNavigate();
+  const { account, isConnected } = useWeb3();
   
-  // Mock booking data - will be replaced with actual data from contract
-  const booking = {
-    id: "BK-001234",
-    status: "pending", // pending, confirmed, checked-in, completed
-    hotel: {
-      name: "Grand Lisk Hotel",
-      address: "123 Blockchain Avenue, Crypto City",
-      image: "/placeholder.svg",
-    },
-    room: {
-      type: "Deluxe Suite",
-      guests: 2,
-    },
-    dates: {
-      checkIn: "2025-12-01",
-      checkOut: "2025-12-05",
-      nights: 4,
-    },
-    payment: {
-      roomCost: 400, // in USDC
-      deposit: 100, // in USDC
-      total: 500,
-      currency: "USDC",
-    },
-    customer: {
-      wallet: "0x742d35Cc6634C0532925a3b844Bc9e7595f0bEb",
-    },
-    escrowStatus: "locked", // locked, released, refunded
-    transactionHash: "0xabc123...",
+  const bookingId = searchParams.get("id");
+  const { booking, loading: bookingLoading, error: bookingError } = useBooking(
+    bookingId ? parseInt(bookingId) : null
+  );
+  const { hotel, loading: hotelLoading } = useHotel(booking?.hotelId || null);
+
+  const loading = bookingLoading || hotelLoading;
+
+  if (!isConnected) {
+    return (
+      <div className="min-h-screen bg-background">
+        <Navigation />
+        <main className="container mx-auto px-4 py-12 pt-24">
+          <Card>
+            <CardContent className="pt-6 text-center">
+              <p className="text-muted-foreground mb-4">Please connect your wallet to view booking details</p>
+              <Button onClick={() => navigate("/find-hotels")}>
+                Back to Hotels
+              </Button>
+            </CardContent>
+          </Card>
+        </main>
+      </div>
+    );
+  }
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-background">
+        <Navigation />
+        <main className="container mx-auto px-4 py-12 pt-24 flex items-center justify-center">
+          <Loader2 className="w-8 h-8 text-primary animate-spin" />
+        </main>
+      </div>
+    );
+  }
+
+  if (bookingError || !booking) {
+    return (
+      <div className="min-h-screen bg-background">
+        <Navigation />
+        <main className="container mx-auto px-4 py-12 pt-24">
+          <Card>
+            <CardContent className="pt-6 text-center">
+              <p className="text-muted-foreground mb-4">{bookingError || "Booking not found"}</p>
+              <Button onClick={() => navigate("/find-hotels")}>
+                Back to Hotels
+              </Button>
+            </CardContent>
+          </Card>
+        </main>
+      </div>
+    );
+  }
+
+  const roomClass = hotel?.roomClasses.find(rc => rc.id === booking.classId);
+  const getStatus = () => {
+    if (booking.roomReleased && booking.depositReleased) return "completed";
+    if (booking.roomReleased) return "checked-in";
+    if (booking.paidRoom) return "confirmed";
+    return "pending";
   };
+
+  const status = getStatus();
 
   return (
     <div className="min-h-screen bg-background">
@@ -56,16 +95,16 @@ const BookingDetails = () => {
           <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8">
             <div>
               <h1 className="text-4xl font-bold text-foreground mb-2">Booking Details</h1>
-              <p className="text-muted-foreground">Booking ID: {booking.id}</p>
+              <p className="text-muted-foreground">Booking ID: #{bookingId}</p>
             </div>
             <Badge 
-              variant={booking.status === "confirmed" ? "default" : "secondary"}
+              variant={status === "confirmed" ? "default" : "secondary"}
               className="text-lg px-4 py-2"
             >
-              {booking.status === "pending" && "⏳ Pending Check-in"}
-              {booking.status === "confirmed" && "✓ Confirmed"}
-              {booking.status === "checked-in" && "🏨 Checked In"}
-              {booking.status === "completed" && "✓ Completed"}
+              {status === "pending" && "⏳ Pending Check-in"}
+              {status === "confirmed" && "✓ Confirmed"}
+              {status === "checked-in" && "🏨 Checked In"}
+              {status === "completed" && "✓ Completed"}
             </Badge>
           </div>
 
@@ -76,16 +115,16 @@ const BookingDetails = () => {
               <Card className="overflow-hidden">
                 <div className="aspect-[16/9] bg-muted relative">
                   <img 
-                    src={booking.hotel.image} 
-                    alt={booking.hotel.name}
+                    src="/placeholder.svg" 
+                    alt={hotel?.name || "Hotel"}
                     className="w-full h-full object-cover"
                   />
                 </div>
                 <CardContent className="pt-6">
-                  <h2 className="text-2xl font-bold mb-2">{booking.hotel.name}</h2>
+                  <h2 className="text-2xl font-bold mb-2">{hotel?.name || "Loading..."}</h2>
                   <div className="flex items-center gap-2 text-muted-foreground">
                     <MapPin className="w-4 h-4" />
-                    <span>{booking.hotel.address}</span>
+                    <span>On-chain Hotel</span>
                   </div>
                 </CardContent>
               </Card>
@@ -96,45 +135,18 @@ const BookingDetails = () => {
                   <CardTitle>Stay Information</CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-4">
-                  <div className="grid sm:grid-cols-2 gap-4">
-                    <div className="flex items-start gap-3 p-3 rounded-lg bg-muted/50">
-                      <Calendar className="w-5 h-5 text-primary mt-0.5 flex-shrink-0" />
-                      <div>
-                        <p className="text-sm font-semibold mb-0.5">Check-in</p>
-                        <p className="text-sm text-muted-foreground">{booking.dates.checkIn}</p>
-                      </div>
-                    </div>
-                    <div className="flex items-start gap-3 p-3 rounded-lg bg-muted/50">
-                      <Calendar className="w-5 h-5 text-primary mt-0.5 flex-shrink-0" />
-                      <div>
-                        <p className="text-sm font-semibold mb-0.5">Check-out</p>
-                        <p className="text-sm text-muted-foreground">{booking.dates.checkOut}</p>
-                      </div>
-                    </div>
-                  </div>
-                  
-                  <Separator />
-                  
                   <div className="space-y-3">
                     <div className="flex items-center justify-between py-2">
                       <div className="flex items-center gap-3">
                         <Clock className="w-5 h-5 text-primary flex-shrink-0" />
                         <span className="font-semibold">Duration</span>
                       </div>
-                      <span className="text-muted-foreground">{booking.dates.nights} nights</span>
-                    </div>
-                    
-                    <div className="flex items-center justify-between py-2">
-                      <div className="flex items-center gap-3">
-                        <Users className="w-5 h-5 text-primary flex-shrink-0" />
-                        <span className="font-semibold">Guests</span>
-                      </div>
-                      <span className="text-muted-foreground">{booking.room.guests} guests</span>
+                      <span className="text-muted-foreground">{booking.nights} nights</span>
                     </div>
 
                     <div className="flex items-center justify-between py-2">
                       <span className="font-semibold">Room Type</span>
-                      <span className="text-muted-foreground">{booking.room.type}</span>
+                      <span className="text-muted-foreground">{roomClass?.name || `Class ${booking.classId}`}</span>
                     </div>
                   </div>
                 </CardContent>
@@ -149,23 +161,32 @@ const BookingDetails = () => {
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-4">
-                  <div className="flex items-center justify-between gap-4">
-                    <span className="font-medium">Payment Status</span>
-                    <Badge variant="outline" className="bg-background">
-                      {booking.escrowStatus === "locked" && "🔒 Funds Secured"}
-                      {booking.escrowStatus === "released" && "✓ Released to Hotel"}
-                      {booking.escrowStatus === "refunded" && "↩️ Refunded"}
-                    </Badge>
+                  <div className="space-y-2">
+                    <div className="flex items-center justify-between gap-4">
+                      <span className="font-medium">Room Payment</span>
+                      <Badge variant="outline" className="bg-background">
+                        {booking.roomReleased ? "✓ Released to Hotel" : "🔒 Secured in Escrow"}
+                      </Badge>
+                    </div>
+                    <div className="flex items-center justify-between gap-4">
+                      <span className="font-medium">Deposit</span>
+                      <Badge variant="outline" className="bg-background">
+                        {booking.depositReleased ? "✓ Processed" : "🔒 Held in Escrow"}
+                      </Badge>
+                    </div>
                   </div>
                   <p className="text-sm text-muted-foreground leading-relaxed">
-                    Your payment is securely held in the smart contract escrow. Funds will be released to the hotel upon check-in confirmation.
+                    {!booking.roomReleased 
+                      ? "Your payment is securely held in the smart contract. Funds will be released to the hotel upon check-in confirmation."
+                      : "Payment has been released. Your deposit will be refunded after checkout if no damages are reported."
+                    }
                   </p>
                   <Button 
                     variant="link" 
                     className="p-0 h-auto text-primary hover:text-primary/80"
-                    onClick={() => window.open(`${booking.transactionHash}`, '_blank')}
+                    onClick={() => window.open(`${LISK_SEPOLIA.explorerUrl}/address/${booking.customer}`, '_blank')}
                   >
-                    View Transaction →
+                    View on Explorer →
                   </Button>
                 </CardContent>
               </Card>
@@ -181,16 +202,18 @@ const BookingDetails = () => {
                 <CardContent className="space-y-3">
                   <div className="flex justify-between items-center py-2">
                     <span className="text-muted-foreground">Room Cost</span>
-                    <span className="font-semibold">{booking.payment.roomCost} {booking.payment.currency}</span>
+                    <span className="font-semibold">{booking.roomCost} USDC</span>
                   </div>
                   <div className="flex justify-between items-center py-2">
                     <span className="text-muted-foreground">Deposit</span>
-                    <span className="font-semibold">{booking.payment.deposit} {booking.payment.currency}</span>
+                    <span className="font-semibold">{booking.depositAmount} USDC</span>
                   </div>
                   <Separator className="my-3" />
                   <div className="flex justify-between items-center text-lg pt-2">
                     <span className="font-bold">Total Paid</span>
-                    <span className="font-bold text-primary">{booking.payment.total} {booking.payment.currency}</span>
+                    <span className="font-bold text-primary">
+                      {(parseFloat(booking.roomCost) + parseFloat(booking.depositAmount)).toFixed(2)} USDC
+                    </span>
                   </div>
                 </CardContent>
               </Card>
@@ -205,7 +228,7 @@ const BookingDetails = () => {
                     <p className="text-sm font-medium text-muted-foreground">Connected Address</p>
                     <div className="bg-muted p-3 rounded-lg">
                       <p className="text-xs font-mono break-all leading-relaxed">
-                        {booking.customer.wallet}
+                        {account}
                       </p>
                     </div>
                   </div>
@@ -214,10 +237,7 @@ const BookingDetails = () => {
 
               {/* Actions */}
               <div className="space-y-3">
-                <Button className="w-full" size="lg">
-                  Contact Hotel
-                </Button>
-                {booking.status === "pending" && (
+                {status === "confirmed" && (
                   <Button variant="outline" className="w-full" size="lg">
                     Request Cancellation
                   </Button>
