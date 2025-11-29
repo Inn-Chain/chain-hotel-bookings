@@ -236,8 +236,17 @@ export async function getAllHotels(provider: BrowserProvider): Promise<Hotel[]> 
     const network = await provider.getNetwork();
     console.log("Connected to network:", network.chainId, network.name);
     
-    const hotelsData = await contract.getAllHotelsWithDetails();
-    console.log("Hotels data received:", hotelsData);
+    // Try the new function first, fall back to old function
+    let hotelsData;
+    try {
+      hotelsData = await contract.getAllHotelsWithDetails();
+      console.log("Hotels data received from getAllHotelsWithDetails:", hotelsData);
+    } catch (e: any) {
+      console.log("getAllHotelsWithDetails not found, trying getAllHotels:", e.message);
+      // Fallback to old function name
+      hotelsData = await contract.getAllHotels();
+      console.log("Hotels data received from getAllHotels:", hotelsData);
+    }
 
     return hotelsData.map((hotel: any) => {
       const roomClasses: RoomClass[] = hotel.classes.map((cls: any) => ({
@@ -263,6 +272,11 @@ export async function getAllHotels(provider: BrowserProvider): Promise<Hotel[]> 
       data: error.data,
       contractAddress: CONTRACTS.INNCHAIN
     });
+    
+    // Provide more helpful error message
+    if (error.code === "CALL_EXCEPTION") {
+      throw new Error("Contract function not found. Please ensure the contract is deployed with the correct functions.");
+    }
     throw new Error("Failed to fetch hotels from blockchain");
   }
 }

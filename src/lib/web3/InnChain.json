@@ -363,6 +363,63 @@
     },
     {
       "inputs": [],
+      "name": "getAllHotels",
+      "outputs": [
+        {
+          "components": [
+            {
+              "internalType": "uint256",
+              "name": "id",
+              "type": "uint256"
+            },
+            {
+              "internalType": "string",
+              "name": "name",
+              "type": "string"
+            },
+            {
+              "internalType": "address",
+              "name": "wallet",
+              "type": "address"
+            },
+            {
+              "internalType": "uint256",
+              "name": "classCount",
+              "type": "uint256"
+            },
+            {
+              "components": [
+                {
+                  "internalType": "uint256",
+                  "name": "id",
+                  "type": "uint256"
+                },
+                {
+                  "internalType": "string",
+                  "name": "name",
+                  "type": "string"
+                },
+                {
+                  "internalType": "uint256",
+                  "name": "pricePerNight",
+                  "type": "uint256"
+                }
+              ],
+              "internalType": "struct InnChain.ClassDetails[]",
+              "name": "classes",
+              "type": "tuple[]"
+            }
+          ],
+          "internalType": "struct InnChain.HotelDetails[]",
+          "name": "",
+          "type": "tuple[]"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
       "name": "getAllHotelsWithDetails",
       "outputs": [
         {
