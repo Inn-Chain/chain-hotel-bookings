@@ -80,8 +80,16 @@ const HotelStaffCheckin = () => {
       const updatedBooking = await getBooking(provider, parseInt(bookingId));
       setSelectedBooking(updatedBooking);
     } catch (error: any) {
-      toast.error(error.message || "Failed to confirm check-in");
       console.error(error);
+      
+      // Check for specific smart contract errors
+      if (error.message?.includes("Hotel: only wallet")) {
+        toast.error("Access Denied: This wallet is not authorized as the hotel's wallet. Only the registered hotel wallet can confirm check-ins.", {
+          duration: 6000,
+        });
+      } else {
+        toast.error(error.message || "Failed to confirm check-in");
+      }
     } finally {
       setLoading(false);
     }
@@ -104,8 +112,15 @@ const HotelStaffCheckin = () => {
       const updatedBooking = await getBooking(provider, parseInt(bookingId));
       setSelectedBooking(updatedBooking);
     } catch (error: any) {
-      toast.error(error.message || "Failed to charge deposit");
       console.error(error);
+      
+      if (error.message?.includes("Hotel: only wallet")) {
+        toast.error("Access Denied: This wallet is not authorized as the hotel's wallet.", {
+          duration: 6000,
+        });
+      } else {
+        toast.error(error.message || "Failed to charge deposit");
+      }
     } finally {
       setLoading(false);
     }
@@ -126,8 +141,15 @@ const HotelStaffCheckin = () => {
       const updatedBooking = await getBooking(provider, parseInt(bookingId));
       setSelectedBooking(updatedBooking);
     } catch (error: any) {
-      toast.error(error.message || "Failed to refund deposit");
       console.error(error);
+      
+      if (error.message?.includes("Hotel: only wallet")) {
+        toast.error("Access Denied: This wallet is not authorized as the hotel's wallet.", {
+          duration: 6000,
+        });
+      } else {
+        toast.error(error.message || "Failed to refund deposit");
+      }
     } finally {
       setLoading(false);
     }
