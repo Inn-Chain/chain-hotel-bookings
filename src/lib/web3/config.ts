@@ -15,7 +15,7 @@ export const PANNA_CONFIG = {
 
 // Contract addresses - Update these with deployed contract addresses
 export const CONTRACTS = {
-  INNCHAIN: import.meta.env.VITE_INNCHAIN_CONTRACT || "0x5C6587367AE3BfcF45c6e196aEC1e72783Dd995E"",
+  INNCHAIN: import.meta.env.VITE_INNCHAIN_CONTRACT || "0x5C6587367AE3BfcF45c6e196aEC1e72783Dd995E",
   USDC: import.meta.env.VITE_USDC_TOKEN || "0xD4fa9D0A762e1c94E6FbBb8f0Eeb090597147603",
 };
 
